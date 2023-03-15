@@ -14,8 +14,11 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth', [
-            'only' => ['edit', 'show']
+            'except' => ['show']
         ]);
+        // $this->middleware('throttle:1,1', [
+        //     'only' => ['eidt']
+        // ]);
     }
 
     //
@@ -28,14 +31,18 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorize('edit');
         return view('users.edit', compact('user'));
     }
 
     public function update(UserRequest $request, ImageUploadHandler $uploader, User $user)
     {
+
+        $this->authorize('update', $user);
+
         $data = $request->all();
         if ($request->avatar) {
-            $result = $uploader->save($request->avatar, 'avatars', $user->id);
+            $result = $uploader->save($request->avatar, 'avatars', $user->id, 416);
             if ($result) {
                 $data['avatar'] = $result['path'];
             }
